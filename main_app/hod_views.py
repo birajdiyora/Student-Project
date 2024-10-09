@@ -108,6 +108,46 @@ def add_student(request):
             messages.error(request, "Could Not Add: ")
     return render(request, 'hod_template/add_student_template.html', context)
 
+def add_student_user(request):
+    student_form = StudentForm(request.POST or None, request.FILES or None)
+    context = {'form': student_form, 'page_title': 'Add Student'}
+    courses = Course.objects.all()
+    sessions = Session.objects.all()
+    
+    context = {
+        'courses': courses,
+        'sessions': sessions,
+    }
+    if request.method == 'POST':
+        if student_form.is_valid():
+            first_name = student_form.cleaned_data.get('first_name')
+            last_name = student_form.cleaned_data.get('last_name')
+            address = student_form.cleaned_data.get('address')
+            email = student_form.cleaned_data.get('email')
+            gender = student_form.cleaned_data.get('gender')
+            password = student_form.cleaned_data.get('password')
+            course = student_form.cleaned_data.get('course')
+            session = student_form.cleaned_data.get('session')
+            passport = request.FILES['profile_pic']
+            fs = FileSystemStorage()
+            filename = fs.save(passport.name, passport)
+            passport_url = fs.url(filename)
+            try:
+                user = CustomUser.objects.create_user(
+                    email=email, password=password, user_type=3, first_name=first_name, last_name=last_name, profile_pic=passport_url)
+                user.gender = gender
+                user.address = address
+                user.student.session = session
+                user.student.course = course
+                user.save()
+                messages.success(request, "Successfully Added")
+                return render(request, 'frontend/register.html',context)
+            except Exception as e:
+                messages.error(request, "Could Not Add: " + str(e))
+        else:
+            messages.error(request, "Could Not Add: ")
+    return render(request, 'frontend/register.html', context)
+
 
 def add_course(request):
     form = CourseForm(request.POST or None)

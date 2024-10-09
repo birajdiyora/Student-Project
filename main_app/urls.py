@@ -148,5 +148,7 @@ urlpatterns = [
     path('trainers.html/', views.trainers, name='trainers'),
     path('starterpage.html/', views.starterpage, name='starterpage'),
     path('events.html/', views.events, name='events'),
-
+    path('register/', hod_views.add_student_user, name='add_student_user'),
+    path('student_login/', views.student_login, name='student_login'),
+    path('trainers/', views.trainers_view, name='trainers'),
 ]

@@ -59,6 +59,29 @@ def doLogin(request, **kwargs):
         else:
             messages.error(request, "Invalid details")
             return redirect("/")
+
+def student_login(request, **kwargs):
+    if request.method != 'POST':
+        return HttpResponse("<h4>Denied</h4>")  # Return a proper HttpResponse if not POST
+    else:
+        # Google recaptcha commented out for now
+        # Uncomment and add proper captcha handling if needed
+        
+        # Authenticate the user using EmailBackend
+        user = EmailBackend.authenticate(request, username=request.POST.get('email'), password=request.POST.get('password'))
+        
+        if user is not None:
+            auth_login(request, user)  # Logs in the user
+            if user.user_type != '1' and user.user_type != '2':  # Redirect for non-admin users
+                return redirect(reverse("student_home"))
+            else:
+                messages.error(request, "Only student login is allowed")
+                return redirect('ulogin')  # Redirect to login if not the right user type
+        else:
+            messages.error(request, "Invalid login details")  # Add error message for invalid login
+            return redirect("ulogin")  # Redirect to login if authentication fails
+
+
 # from django.shortcuts import redirect
 # from django.http import HttpResponse
 # from django.contrib import messages
@@ -193,7 +216,22 @@ def login(request):
     return render(request, 'frontend/login.html')
 
 def register(request):
-    return render(request, 'frontend/register.html')
+    courses = Course.objects.all()
+    sessions = Session.objects.all()
+    
+    context = {
+        'courses': courses,
+        'sessions': sessions,
+    }
+    return render(request, 'frontend/register.html',context)
+
+def trainers_view(request):
+    trainers = CustomUser.objects.filter(user_type=2)  # Assuming user_type=2 represents trainers
+    context = {
+        'trainers': trainers,
+        'page_title': 'Our Trainers'
+    }
+    return render(request, "frontend/trainers.html", context)
 
 def webdesign(request):
     return render(request, 'frontend/webdesign.html')
